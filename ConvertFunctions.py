@@ -1,10 +1,18 @@
 def convert_to_int(value):
     try:
-        return int(value)
+        # First try to convert to float (handling commas)
+        float_val = convert_to_float(value)
+        # Then if successful, convert to int
+        if isinstance(float_val, float):
+            return int(float_val)
+        return value
     except ValueError:
         return value
 def convert_to_float(value):
     try:
+        # First, handle string values with commas
+        if isinstance(value, str):
+            value = value.replace(',', '.')
         return float(value)
     except ValueError:
         return value
@@ -33,5 +41,5 @@ def clear_db(db):
     db.drop(DeletingRows, inplace=True)
     db.dropna()
 
-#end
+
 

@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import os
-from ConvertFunctions import convert_to_int
+from ConvertFunctions import convert_to_int, convert_to_float
+
 
 def clear_db(db):
     DeletingRows = []
@@ -12,7 +13,13 @@ def clear_db(db):
         for j in range(4):
             try:
                 value = db['result'].iloc[i + j]
-                if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace('.','',1).isdigit()):
+                # Convert string value if it contains comma
+                if isinstance(value, str):
+                    # Replace comma with dot for decimal numbers
+                    value = value.replace(',', '.')
+
+                # Now check if it's numeric after potential comma replacement
+                if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace('.', '', 1).isdigit()):
                     checker += 1
             except:
                 break
@@ -33,7 +40,8 @@ def process_beckman_file(file_path):
     # Set column names and process
     column_names = ['age', 'gender', 'test', 'result']
     result_df.columns = column_names
-    result_df['result'] = result_df['result'].astype("str").apply(convert_to_int)
+    result_df['result'] = result_df['result'].astype("str").apply(convert_to_float)
+    result_df['result'] = result_df['result'].apply(convert_to_int)
     result_df.fillna(method='ffill', inplace=True)
 
     clear_db(result_df)
@@ -111,14 +119,14 @@ def combine_beckman_files(directory="."):  # Default to current directory if non
     })
 
     # Save to Excel
-    output_file = 'combined_beckman_data.xlsx'
+    output_file = 'combined_beckman_data_second.xlsx'
     df.to_excel(output_file, index=False)
     print(f"\nAll data combined and saved to {output_file}")
     print(f"Total records processed: {len(df)}")
 
     return all_age_deps, all_ldl, all_gender
 
-def load_combined_beckman_data(file_path='combined_beckman_data.xlsx'):
+def load_combined_beckman_data(file_path='combined_beckman_data_second.xlsx'):
     df = pd.read_excel(file_path)
 
     # Create age_and_dependents array
