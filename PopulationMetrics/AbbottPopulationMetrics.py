@@ -1,5 +1,6 @@
 import numpy as np
-from DataFilteringBeckman import load_combined_data
+from DataFiltering.DataFilteringFatih import load_combined_data
+
 
 def print_iqr_stats(name, data):
     q1 = np.percentile(data, 25)
@@ -11,6 +12,7 @@ def print_iqr_stats(name, data):
     print(f"IQR: {iqr:.2f}")
     print(f"Q1: {q1:.2f}")
     print(f"Q3: {q3:.2f}")
+
 
 def print_group_stats(name, data, total_patients):
     print(f"\n{name} Group Distribution:")
@@ -46,6 +48,7 @@ def print_group_stats(name, data, total_patients):
         percentage = (count / total_patients) * 100
         print(f"{label}: N={count} ({percentage:.1f}%)")
 
+
 def calculate_population_metrics(age_and_dependents, LDL, gender):
     # Extract components
     age = age_and_dependents[:, 0].astype(float)
@@ -55,7 +58,7 @@ def calculate_population_metrics(age_and_dependents, LDL, gender):
 
     # Print population overview
     total_patients = len(LDL)
-    print("\nBeckman Population Statistics:")
+    print("\nPopulation Statistics:")
     print(f"Total Number of Patients: {total_patients}")
 
     # Print IQR statistics for each measure
@@ -88,10 +91,12 @@ def calculate_population_metrics(age_and_dependents, LDL, gender):
         'gender_distribution': dict(zip(unique_genders, gender_counts))
     }
 
+
 def main():
     print("Loading combined data file...")
-    age_and_dependents, LDL, gender = load_combined_data('combined_beckman_data.xlsx')
+    age_and_dependents, LDL, gender = load_combined_data('combined_fatih_data.xlsx')
     calculate_population_metrics(age_and_dependents, LDL, gender)
+
 
 if __name__ == "__main__":
     main()

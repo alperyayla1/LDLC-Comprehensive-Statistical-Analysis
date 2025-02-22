@@ -1,24 +1,26 @@
 import numpy as np
-from DataFilteringFatih import load_combined_data
-
+import pandas as pd
+import os
 
 def print_iqr_stats(name, data):
-    q1 = np.percentile(data, 25)
-    q3 = np.percentile(data, 75)
+    # Convert to integer using round
+    data = np.round(data).astype(int)
+    q1 = int(np.percentile(data, 25))
+    q3 = int(np.percentile(data, 75))
     iqr = q3 - q1
 
     print(f"\n{name} Statistics:")
-    print(f"Median: {np.median(data):.2f}")
-    print(f"IQR: {iqr:.2f}")
-    print(f"Q1: {q1:.2f}")
-    print(f"Q3: {q3:.2f}")
-
+    print(f"Median: {int(np.median(data))}")
+    print(f"IQR: {iqr}")
+    print(f"Q1: {q1}")
+    print(f"Q3: {q3}")
 
 def print_group_stats(name, data, total_patients):
+    # Convert to integer using round
+    data = np.round(data).astype(int)
     print(f"\n{name} Group Distribution:")
 
     if name == "LDL":
-        # LDL specific groups
         groups = [
             (0, 69, "LDL < 70"),
             (70, 99, "LDL 70-99"),
@@ -28,7 +30,6 @@ def print_group_stats(name, data, total_patients):
             (190, float('inf'), "LDL ≥ 190")
         ]
     else:  # TGL
-        # TGL specific groups
         groups = [
             (0, 99, "TGL < 100"),
             (100, 149, "TGL 100-149"),
@@ -40,7 +41,7 @@ def print_group_stats(name, data, total_patients):
     for low, high, label in groups:
         if high == float('inf'):
             mask = data >= low
-        elif low == 0:  # For the "less than" groups
+        elif low == 0:
             mask = data <= high
         else:
             mask = (data >= low) & (data <= high)
@@ -48,21 +49,32 @@ def print_group_stats(name, data, total_patients):
         percentage = (count / total_patients) * 100
         print(f"{label}: N={count} ({percentage:.1f}%)")
 
+def load_roche_data():
+    try:
+        file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data", "ROCHE_filtered_results.xlsx")
+        return pd.read_excel(file_path)
+    except Exception as e:
+        print(f"Error loading ROCHE data: {str(e)}")
+        return None
 
-def calculate_population_metrics(age_and_dependents, LDL, gender):
-    # Extract components
-    age = age_and_dependents[:, 0].astype(float)
-    KLS = age_and_dependents[:, 1].astype(float)
-    TGL = age_and_dependents[:, 2].astype(float)
-    HDL = age_and_dependents[:, 3].astype(float)
+def calculate_roche_population_metrics():
+    # Load data
+    df = load_roche_data()
+    if df is None:
+        return None
+
+    # Extract components and convert to integers using round
+    TGL = np.round(df['Trigliserit'].astype(float)).astype(int)
+    KLS = np.round(df['Kolesterol'].astype(float)).astype(int)
+    LDL = np.round(df['LDL'].astype(float)).astype(int)
+    HDL = np.round(df['HDL'].astype(float)).astype(int)
 
     # Print population overview
     total_patients = len(LDL)
-    print("\nPopulation Statistics:")
+    print("\nROCHE Population Statistics:")
     print(f"Total Number of Patients: {total_patients}")
 
     # Print IQR statistics for each measure
-    print_iqr_stats("Age", age)
     print_iqr_stats("Kolesterol (KLS)", KLS)
     print_iqr_stats("LDL", LDL)
     print_iqr_stats("HDL", HDL)
@@ -72,31 +84,15 @@ def calculate_population_metrics(age_and_dependents, LDL, gender):
     print_group_stats("LDL", LDL, total_patients)
     print_group_stats("TGL", TGL, total_patients)
 
-    # Gender distribution
-    unique_genders, gender_counts = np.unique(gender, return_counts=True)
-    print("\nGender Distribution:")
-    for gender_type, count in zip(unique_genders, gender_counts):
-        percentage = (count / len(gender)) * 100
-        print(f"{gender_type}: {count} ({percentage:.2f}%)")
-
-    # Return calculated values for potential further use
     return {
         'basic_metrics': {
-            'age': age,
             'KLS': KLS,
             'TGL': TGL,
             'HDL': HDL,
             'LDL': LDL
         },
-        'gender_distribution': dict(zip(unique_genders, gender_counts))
+        'total_patients': total_patients
     }
 
-
-def main():
-    print("Loading combined data file...")
-    age_and_dependents, LDL, gender = load_combined_data('combined_fatih_data.xlsx')
-    calculate_population_metrics(age_and_dependents, LDL, gender)
-
-
 if __name__ == "__main__":
-    main()
+    roche_metrics = calculate_roche_population_metrics()

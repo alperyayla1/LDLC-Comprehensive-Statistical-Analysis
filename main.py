@@ -2,8 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 import seaborn as sns
-from DataFilteringFatih import load_combined_data, combine_fatih_files
-from DataFilteringBeckman import combine_beckman_files, process_beckman_file
+import os
+from DataFiltering.DataFilteringFatih import load_combined_data, combine_fatih_files
+from DataFiltering.DataFilteringBeckman import combine_beckman_files, process_beckman_file
+from DataFiltering.DataFilteringRocheCobas import process_roche_file
 
 
 def create_ldl_distribution_plots(LDL, title="LDL Distribution Analysis"):
@@ -57,17 +59,26 @@ def main():
 
     fatih_dir = "C:/Users/alper/OneDrive/Masaüstü/BioChemistry"
     beckman_dir = "C:/Users/alper/OneDrive/Masaüstü/BioChemistry"
+    roche_dir = "C:/Users/alper/OneDrive/Masaüstü/BioChemistry"
 
     """
     # Process Fatih data
     print("Processing Fatih data...")
     combine_fatih_files(fatih_dir)
     print("Fatih data processing complete!")
-    """
-
-    combine_beckman_files(beckman_dir)
+    #combine_beckman_files(beckman_dir)
     #combine_fatih_files(fatih_dir)
+    """
+    roche_input = "C:/Users/alper/OneDrive/Masaüstü/BioChemistry/ROCHE (1).xls"
 
+    # Output path in project's Data directory
+    roche_output = "Data/ROCHE_filtered_results.xlsx"
+
+    # Create Data directory in project if it doesn't exist
+    os.makedirs("Data", exist_ok=True)
+    print("Processing ROCHE data...")
+    process_roche_file(roche_input, roche_output)
+    print("ROCHE data processing complete!")
 
 
 if __name__ == "__main__":

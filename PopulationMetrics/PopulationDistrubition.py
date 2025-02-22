@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 import seaborn as sns
-from DataFilteringFatih import load_combined_data
+from DataFiltering.DataFilteringFatih import load_combined_data
 
 
 def create_qq_plot(LDL, title="LDL Normal Distribution Analysis"):

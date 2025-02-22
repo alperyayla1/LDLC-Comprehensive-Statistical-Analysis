@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import os
-from ConvertFunctions import convert_to_int
+from AdditionalFunctions.ConvertFunctions import convert_to_int, convert_to_float
+
 
 def clear_db(db):
     DeletingRows = []
@@ -11,15 +12,20 @@ def clear_db(db):
         checker = 0
         for j in range(4):
             try:
-                if isinstance(db['result'].iloc[i + j], int):
-                    checker += 1
+                value = db['result'].iloc[i + j]
+                # Convert string value if it contains comma
+                if isinstance(value, str):
+                    # Replace comma with dot for decimal numbers
+                    value = value.replace(',', '.')
 
+                # Now check if it's numeric after potential comma replacement
+                if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace('.', '', 1).isdigit()):
+                    checker += 1
             except:
                 break
 
         if checker == 4:
             i += 4
-
         else:
             DeletingRows.append(i)
             i += 1
@@ -27,14 +33,15 @@ def clear_db(db):
     db.drop(DeletingRows, inplace=True)
     db.dropna()
 
-def process_fatih_file(file_path):
+def process_beckman_file(file_path):
     # Read the Excel file
     result_df = pd.read_excel(file_path, usecols='G, F, Q, R')
 
     # Set column names and process
     column_names = ['age', 'gender', 'test', 'result']
     result_df.columns = column_names
-    result_df['result'] = result_df['result'].astype("str").apply(convert_to_int)
+    result_df['result'] = result_df['result'].astype("str").apply(convert_to_float)
+    result_df['result'] = result_df['result'].apply(convert_to_int)
     result_df.fillna(method='ffill', inplace=True)
 
     clear_db(result_df)
@@ -64,13 +71,14 @@ def process_fatih_file(file_path):
     return age_and_dependents, LDL, gender
 
 
-def combine_fatih_files(directory="."):  # Default to current directory if none specified
-    fatih_files = [
-        "01-11-2023-31-01-2024  FATİH.xlsx",
-        "01-10-202330-11-2023 FATİH.xlsx",
-        "01-07-2023-30-09-2023 FATİH.xlsx",
-        "01-04-2023-30-06-2023 FATİH.xlsx",
-        "01-01-2023-31-03-2023 FATİH.xlsx"
+def combine_beckman_files(directory="."):  # Default to current directory if none specified
+    beckman_files = [
+        "24December25Jan.xlsx",
+        "OctoNove2024.xlsx",
+        "August2024.xlsx",
+        "JuneJuly2024.xlsx",
+        "AprilMay2024.xlsx",
+        "FebMarch2024.xlsx"
     ]
 
     # Print available files in directory for debugging
@@ -80,12 +88,12 @@ def combine_fatih_files(directory="."):  # Default to current directory if none 
     all_ldl = []
     all_gender = []
 
-    for file in fatih_files:
+    for file in beckman_files:
         file_path = os.path.abspath(os.path.join(directory, file))
         if os.path.exists(file_path):
             try:
                 print(f"Processing {file}...")
-                age_deps, ldl, gend = process_fatih_file(file_path)
+                age_deps, ldl, gend = process_beckman_file(file_path)
                 all_age_deps.extend(age_deps)
                 all_ldl.extend(ldl)
                 all_gender.extend(gend)
@@ -95,7 +103,6 @@ def combine_fatih_files(directory="."):  # Default to current directory if none 
         else:
             print(f"File not found: {file_path}")
 
-    # Continue with the rest of your existing code...
     # Convert to arrays
     all_age_deps = np.array(all_age_deps)
     all_ldl = np.array(all_ldl)
@@ -112,15 +119,14 @@ def combine_fatih_files(directory="."):  # Default to current directory if none 
     })
 
     # Save to Excel
-    output_file = 'combined_fatih_data.xlsx'
+    output_file = 'combined_beckman_data_second.xlsx'
     df.to_excel(output_file, index=False)
     print(f"\nAll data combined and saved to {output_file}")
     print(f"Total records processed: {len(df)}")
 
     return all_age_deps, all_ldl, all_gender
 
-def load_combined_data(file_path='combined_fatih_data.xlsx'):
-
+def load_combined_beckman_data(file_path='combined_beckman_data_second.xlsx'):
     df = pd.read_excel(file_path)
 
     # Create age_and_dependents array
